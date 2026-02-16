@@ -44,21 +44,6 @@ uv sync
 # uv add crewai
 ```
 
-### Alternative: Manual Installation
-
-If you prefer not to use uv:
-
-```bash
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Optional: Install full CrewAI (requires Rust compiler)
-# pip install crewai
-```
 
 ## AWS Bedrock Configuration
 
@@ -100,24 +85,6 @@ Ensure your AWS user/role has these Bedrock permissions:
 ```
 
 ## Usage
-
-### Test Bedrock Connection
-
-First, test your AWS Bedrock setup:
-
-```bash
-# Using uv
-uv run python bedrock_test.py
-
-# Or activate venv and run
-source venv/bin/activate
-python bedrock_test.py
-```
-
-This will verify:
-- AWS credentials are working
-- Bedrock service is accessible
-- Nova Micro model is available
 
 ### Run CrewAI Example
 
@@ -193,13 +160,12 @@ CrewAI supports these AWS Bedrock models:
 
 ```
 crewai-agents/
-├── venv/                    # Python virtual environment (created by uv/python)
+├── venv/                    # Python virtual environment (created by uv)
 ├── pyproject.toml          # uv project configuration
-├── requirements.txt         # Alternative pip dependencies
 ├── .env.example            # Environment variables template
-├── bedrock_test.py         # AWS Bedrock connectivity test
 ├── crew_example.py         # Multi-agent CrewAI example
 ├── LICENSE                 # MIT License
+├── .gitignore             # Git ignore rules
 └── README.md              # This file
 ```
 
