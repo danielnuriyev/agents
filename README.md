@@ -95,7 +95,20 @@ Execute the multi-agent orchestration example:
 
 ```bash
 source .venv/bin/activate
+python test_crew.py [--output OUTPUT_FOLDER]
+```
+
+**Arguments:**
+- `--output OUTPUT_FOLDER`: Folder to save results (default: `crew_results`)
+
+**Examples:**
+```bash
+# Use default output folder
 python test_crew.py
+
+# Specify custom output folder
+python test_crew.py --output my_experiment_1
+python test_crew.py --output ./results/run_2024_01_01
 ```
 
 This demonstrates:
@@ -103,6 +116,18 @@ This demonstrates:
 - **Code Reviewer**: Reviews for quality and best practices
 - **Testing Agent**: Creates comprehensive tests
 - **Collaborative Workflow**: Agents working together to complete a complex task
+
+**Output Structure:**
+```
+OUTPUT_FOLDER/
+├── console_output/
+│   └── crew_execution.log          # Console logs and verbose output
+├── results/
+│   ├── final_result.txt            # Final crew execution result
+│   └── error.log                   # Error logs (if any)
+└── metadata/
+    └── execution_metadata.json     # Execution info and metadata
+```
 
 ### Custom Agent Creation
 
