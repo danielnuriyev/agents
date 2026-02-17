@@ -1,0 +1,13 @@
+name: test_task
+description: |
+  Create comprehensive unit tests for the implemented function, including:
+  1. Normal operation tests
+  2. Edge cases (empty lists, missing data, invalid types)
+  3. Error conditions
+  4. Performance tests if applicable
+
+  Use pytest framework and include test fixtures.
+agent: agent.testing_agent
+context:
+  - task.implement_task
+expected_output: Complete test suite with high coverage

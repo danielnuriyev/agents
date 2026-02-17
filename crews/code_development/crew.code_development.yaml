@@ -1,0 +1,10 @@
+name: code_development
+agents:
+  - agent.coding_assistant
+  - agent.code_reviewer
+  - agent.testing_agent
+tasks:
+  - task.implement_task
+  - task.review_task
+  - task.test_task
+verbose: true
