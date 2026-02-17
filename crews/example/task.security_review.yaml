@@ -1,0 +1,21 @@
+name: security_review
+description: |
+  Execute security tests to identify and demonstrate vulnerabilities in the find_max_even function:
+
+  SECURITY TESTS TO RUN:
+  - Denial of Service: Test with extremely large inputs (1M+ elements)
+  - Input Validation: Test with malicious data types (strings, None, objects)
+  - Resource Exhaustion: Test memory usage with large inputs
+  - Type Safety: Test with unexpected input types (int, str, dict)
+  - Boundary Conditions: Test with edge cases that could cause issues
+
+  IMPORTANT: Write and execute security test code.
+  Report:
+  - Test code that attempts each attack vector
+  - Actual execution results showing vulnerabilities or safe handling
+  - Severity assessment for each identified issue
+  - Recommended security fixes with code examples
+agent: agent.security_tester
+context:
+  - task.coding_task
+expected_output: Executed security tests with vulnerability demonstrations and remediation recommendations

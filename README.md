@@ -18,11 +18,27 @@ CrewAI is a framework for orchestrating AI agents to work together on complex ta
 
 ### Prerequisites
 
+- **uv**: Fast Python package manager (recommended)
 - **Python 3.10 - 3.13** (Note: Python 3.14 is currently NOT supported by CrewAI)
 - **AWS Credentials**: Configured via `~/.aws/credentials` or environment variables
 - **Bedrock Access**: IAM permissions for `bedrock:InvokeModel`
 
-### Install Dependencies
+### Install and Run with uv (Recommended)
+
+[uv](https://github.com/astral-sh/uv) is a fast Python package manager that simplifies environment management.
+
+```bash
+# Install uv (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Sync dependencies and create virtual environment
+uv sync
+
+# Run the crew using uv run (automatically handles the environment)
+uv run run_crew.py --crew ./crews/example
+```
+
+### Manual Installation (Alternative)
 
 It is recommended to use a virtual environment:
 
@@ -32,7 +48,7 @@ python3.13 -m venv .venv
 source .venv/bin/activate
 
 # Install dependencies
-pip install crewai langchain-aws boto3 python-dotenv
+pip install crewai langchain-aws boto3 python-dotenv pyyaml
 ```
 
 ## AWS Bedrock Configuration
@@ -75,12 +91,66 @@ Ensure your AWS user/role has these Bedrock permissions:
 
 ## Usage
 
-### Run AWS Bedrock Examples
+### Run CrewAI with YAML Configurations (New! 🚀)
+
+The system now supports loading agents, tasks, and crew configurations from YAML files.
+**Agents actually write and execute code** to verify their work!
+
+```bash
+# Using uv (Recommended)
+uv run run_crew.py --crew ./crews/example
+
+# Using standard Python
+python run_crew.py --crew ./crews/example
+```
+
+**Arguments:**
+- `--crew CREW_FOLDER`: Path to the folder containing YAML configurations (required)
+- `--output OUTPUT_FOLDER`: Folder to save results (default: `./.results/crew-{timestamp}`)
+
+**Examples:**
+```bash
+# Run the example crew
+uv run run_crew.py --crew ./crews/example
+
+# Specify custom output folder
+uv run run_crew.py --crew ./crews/example --output my_experiment_1
+```
+
+**Output Structure:**
+Results are automatically saved to a timestamped directory in `.results/`:
+```
+.results/
+└── crew-20241201143025/          # Timestamped run folder
+    ├── crew_execution.log        # Console logs
+    ├── final_result.md           # Complete analysis & test results
+    ├── execution_metadata.json   # Metadata
+    ├── find_max_even.py              # Main function
+    ├── test_validation.py            # Test functions (run concurrently!)
+    ├── test_performance.py           # Performance benchmarks
+    ├── test_security.py              # Security vulnerability tests
+    ├── test_execution_results.json   # Concurrent execution results with timing
+    └── ...                           # All extracted functions
+```
+
+**✨ Key Features:**
+- **Code Extraction**: Each function is automatically extracted into separate `.py` files
+- **Concurrent Test Execution**: Multiple test functions run in parallel using subprocesses
+- **Individual Files**: Get `find_max_even.py`, `test_validation.py`, etc. as separate files
+- **Real Execution Results**: Tests actually run and report PASS/FAIL with timing data
+- **Performance**: Concurrent execution provides ~3x speedup for multiple tests
+- **Test Analysis Agent**: Reviews all test results and provides fix recommendations
+
+### Legacy Examples
 
 #### Simple Bedrock Demo (Working! ✅)
 Test AWS Bedrock Nova Micro directly using `boto3`:
 
 ```bash
+# Using uv
+uv run test_bedrock.py
+
+# Using standard Python
 source .venv/bin/activate
 python test_bedrock.py
 ```
@@ -90,10 +160,14 @@ This demonstrates:
 - **Direct API usage** - Efficiently invokes the model
 - **Code generation & review** - Creates and analyzes Python code
 
-#### Full CrewAI Example (Working! ✅)
-Execute the multi-agent orchestration example:
+#### Full CrewAI Example (test_crew.py)
+Execute the hardcoded multi-agent orchestration example:
 
 ```bash
+# Using uv
+uv run test_crew.py
+
+# Using standard Python
 source .venv/bin/activate
 python test_crew.py [--output OUTPUT_FOLDER]
 ```
@@ -104,11 +178,10 @@ python test_crew.py [--output OUTPUT_FOLDER]
 **Examples:**
 ```bash
 # Use default output folder
-python test_crew.py
+uv run test_crew.py
 
 # Specify custom output folder
-python test_crew.py --output my_experiment_1
-python test_crew.py --output ./results/run_2024_01_01
+uv run test_crew.py --output my_experiment_1
 ```
 
 This demonstrates:
@@ -120,13 +193,10 @@ This demonstrates:
 **Output Structure:**
 ```
 OUTPUT_FOLDER/
-├── console_output/
-│   └── crew_execution.log          # Console logs and verbose output
-├── results/
-│   ├── final_result.txt            # Final crew execution result
-│   └── error.log                   # Error logs (if any)
-└── metadata/
-    └── execution_metadata.json     # Execution info and metadata
+├── crew_execution.log          # Console logs and verbose output
+├── final_result.md             # Final crew execution result
+├── error.log                   # Error logs (if any)
+└── execution_metadata.json     # Execution info and metadata
 ```
 
 ### Custom Agent Creation

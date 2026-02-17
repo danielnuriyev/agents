@@ -1,0 +1,22 @@
+name: performance_review
+description: |
+  Execute performance benchmarks and analyze the find_max_even function efficiency:
+
+  PERFORMANCE TESTS REQUIRED:
+  - Time execution with small lists (10 elements)
+  - Time execution with medium lists (1,000 elements)
+  - Time execution with large lists (100,000 elements)
+  - Measure memory usage patterns
+  - Analyze time complexity (should be O(n))
+  - Test scalability with increasing input sizes
+
+  IMPORTANT: Write and execute benchmark code.
+  Report:
+  - Actual execution times for different input sizes
+  - Time complexity analysis with evidence
+  - Performance bottlenecks identified
+  - Optimization recommendations with expected improvements
+agent: agent.performance_tester
+context:
+  - task.coding_task
+expected_output: Executed performance benchmarks with timing data and optimization analysis

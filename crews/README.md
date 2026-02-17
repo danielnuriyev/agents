@@ -1,5 +1,7 @@
 # Crews Directory Structure
 
+WIP !!!
+
 This directory contains CrewAI crew configurations organized in YAML format.
 
 ## Structure
@@ -18,8 +20,8 @@ Example:
 ```
 crews/
 ├── README.md
-└── code_development/
-    ├── crew.code_development.yaml
+└── example/
+    ├── crew.example.yaml
     ├── agent.coding_assistant.yaml
     ├── agent.code_reviewer.yaml
     ├── agent.testing_agent.yaml
@@ -54,7 +56,7 @@ Defines individual task configurations with:
 - `expected_output`: Description of expected results
 - `context`: Optional list of other task filenames this task depends on
 
-## Example Crew: code_development
+## Example Crew: example
 
 This example crew demonstrates a complete software development workflow with:
 - **coding_assistant**: Writes clean, efficient code

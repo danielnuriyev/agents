@@ -1,0 +1,11 @@
+name: coding_task
+description: |
+  Write a Python function that finds the maximum even number in a list of integers.
+  The function should be named find_max_even and take a list of integers as input.
+  If there are no even numbers in the list, return None.
+  Handle edge cases like empty lists gracefully.
+
+  IMPORTANT: You must write the actual function code and test it by running several examples.
+  Include the function code AND the test execution results in your output.
+agent: agent.coder
+expected_output: Complete Python function with working code examples and execution results

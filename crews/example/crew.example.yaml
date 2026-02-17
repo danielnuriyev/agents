@@ -1,0 +1,16 @@
+name: example
+agents:
+  - agent.coder
+  - agent.functionality_tester
+  - agent.validation_tester
+  - agent.performance_tester
+  - agent.security_tester
+  - agent.test_analyzer
+tasks:
+  - task.coding_task
+  - task.functionality_test
+  - task.validation_test
+  - task.performance_review
+  - task.security_review
+  - task.analyze_results
+verbose: true

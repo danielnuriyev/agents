@@ -1,0 +1,21 @@
+name: validation_test
+description: |
+  Execute comprehensive validation tests to prove the find_max_even function meets ALL specifications:
+
+  VALIDATION REQUIREMENTS:
+  - Returns the maximum even number from a list (e.g., [1, 8, 4, 6] → 8)
+  - Returns None when no even numbers exist (e.g., [1, 3, 5] → None)
+  - Handles empty lists correctly ([] → None)
+  - Works with negative even numbers (e.g., [-4, -2, 1] → -2)
+  - Correctly identifies maximum among multiple even numbers ([2, 8, 4] → 8)
+
+  IMPORTANT: Create and run validation tests that prove each requirement.
+  Show:
+  - Test code for each validation case
+  - Actual execution results
+  - Verification that each spec is met
+  - Any edge cases discovered
+agent: agent.validation_tester
+context:
+  - task.coding_task
+expected_output: Validation test execution with proof that all specifications are correctly implemented
