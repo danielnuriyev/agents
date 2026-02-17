@@ -86,8 +86,26 @@ Ensure your AWS user/role has these Bedrock permissions:
 
 ## Usage
 
-### Run CrewAI Example
+### Run AWS Bedrock Examples
 
+#### Simple Bedrock Demo (Working! ✅)
+Test AWS Bedrock Nova Micro directly:
+
+```bash
+# Using uv
+uv run python simple_bedrock_example.py
+
+# Or activate venv and run
+source venv/bin/activate
+python simple_bedrock_example.py
+```
+
+This demonstrates:
+- **AWS Bedrock connectivity** with Nova Micro
+- **Code generation** - Creates Python functions
+- **Code review** - Analyzes generated code quality
+
+#### Full CrewAI Example (Requires additional setup)
 Execute the multi-agent example:
 
 ```bash
@@ -98,6 +116,8 @@ uv run python crew_example.py
 source venv/bin/activate
 python crew_example.py
 ```
+
+Note: Full CrewAI requires additional dependencies and Rust compiler for tiktoken.
 
 This demonstrates:
 - **Coding Assistant**: Writes clean, efficient code
