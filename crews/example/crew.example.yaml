@@ -12,5 +12,4 @@ tasks:
   - task.validation_test
   - task.performance_review
   - task.security_review
-  - task.analyze_results
 verbose: true

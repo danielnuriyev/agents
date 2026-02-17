@@ -9,12 +9,22 @@ description: |
   - Type Safety: Test with unexpected input types (int, str, dict)
   - Boundary Conditions: Test with edge cases that could cause issues
 
-  IMPORTANT: Write and execute security test code.
-  Report:
-  - Test code that attempts each attack vector
-  - Actual execution results showing vulnerabilities or safe handling
-  - Severity assessment for each identified issue
-  - Recommended security fixes with code examples
+  IMPORTANT: You must provide the COMPLETE Python test code in a ```python ... ``` block.
+  The code must be self-contained (except for importing find_max_even).
+  Each test case must be a function starting with 'test_'.
+  Include a main block to run the tests.
+  
+  Example structure:
+  ```python
+  import find_max_even
+  
+  def test_security_example():
+      # ...
+      print("test_security_example: PASS")
+      
+  if __name__ == "__main__":
+      test_security_example()
+  ```
 agent: agent.security_tester
 context:
   - task.coding_task

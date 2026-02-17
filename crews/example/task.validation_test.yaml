@@ -9,12 +9,22 @@ description: |
   - Works with negative even numbers (e.g., [-4, -2, 1] → -2)
   - Correctly identifies maximum among multiple even numbers ([2, 8, 4] → 8)
 
-  IMPORTANT: Create and run validation tests that prove each requirement.
-  Show:
-  - Test code for each validation case
-  - Actual execution results
-  - Verification that each spec is met
-  - Any edge cases discovered
+  IMPORTANT: You must provide the COMPLETE Python test code in a ```python ... ``` block.
+  The code must be self-contained (except for importing find_max_even).
+  Each test case must be a function starting with 'test_'.
+  Include a main block to run the tests.
+  
+  Example structure:
+  ```python
+  import find_max_even
+  
+  def test_spec_example():
+      assert find_max_even.find_max_even([2, 4]) == 4
+      print("test_spec_example: PASS")
+      
+  if __name__ == "__main__":
+      test_spec_example()
+  ```
 agent: agent.validation_tester
 context:
   - task.coding_task

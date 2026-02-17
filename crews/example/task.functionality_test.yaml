@@ -10,11 +10,22 @@ description: |
   - Empty lists ([] → should return None)
   - Lists with negative numbers (e.g., [-2, -1, 0, 2] → should return 2)
 
-  IMPORTANT: Write the test code, actually run it, and show:
-  - The complete test code
-  - Execution results for each test case
-  - Clear PASS/FAIL status for each test
-  - Summary of test results
+  IMPORTANT: You must provide the COMPLETE Python test code in a ```python ... ``` block.
+  The code must be self-contained (except for importing find_max_even).
+  Each test case must be a function starting with 'test_'.
+  Include a main block to run the tests.
+  
+  Example structure:
+  ```python
+  import find_max_even
+  
+  def test_example():
+      assert find_max_even.find_max_even([2, 4]) == 4
+      print("test_example: PASS")
+      
+  if __name__ == "__main__":
+      test_example()
+  ```
 agent: agent.functionality_tester
 context:
   - task.coding_task

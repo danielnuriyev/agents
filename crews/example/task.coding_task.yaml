@@ -7,5 +7,19 @@ description: |
 
   IMPORTANT: You must write the actual function code and test it by running several examples.
   Include the function code AND the test execution results in your output.
+  Use the following structure for your code:
+  ```python
+  def find_max_even(int_list):
+      # your code here
+      pass
+
+  # Test cases
+  print(find_max_even([1, 2, 3, 4]))
+  ```
+  
+  NOTE: For the purpose of testing the iterative fix loop, please intentionally 
+  include a small bug in your first implementation (e.g., return the minimum 
+  even number instead of maximum) so that the testers can catch it and we can 
+  see the fix loop in action.
 agent: agent.coder
 expected_output: Complete Python function with working code examples and execution results

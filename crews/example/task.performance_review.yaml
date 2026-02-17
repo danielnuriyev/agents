@@ -16,6 +16,13 @@ description: |
   - Time complexity analysis with evidence
   - Performance bottlenecks identified
   - Optimization recommendations with expected improvements
+
+  Use the following structure for your benchmark code:
+  ```python
+  def test_performance_large_list():
+      # ...
+      print("test_performance_large_list: PASS")
+  ```
 agent: agent.performance_tester
 context:
   - task.coding_task

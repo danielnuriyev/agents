@@ -252,33 +252,51 @@ def extract_code_blocks(output_dir, final_result_file):
     code_block_pattern = r'```(\w+)?\n(.*?)\n```'
     code_blocks = re.findall(code_block_pattern, content, re.DOTALL)
 
-    # Group code blocks by language and keep only the last one for each language
-    final_code_blocks = {}
+    # If no code blocks found with language tags, try finding any triple backtick blocks
+    if not code_blocks:
+        code_block_pattern = r'```\n(.*?)\n```'
+        raw_blocks = re.findall(code_block_pattern, content, re.DOTALL)
+        code_blocks = [('python' if 'def ' in b or 'import ' in b else 'txt', b) for b in raw_blocks]
+
+    # Process all code blocks
+    extracted_files = []
+    python_block_count = 0
+    other_block_count = 0
+
     for lang, code in code_blocks:
         lang = lang.lower() if lang else 'txt'
-        final_code_blocks[lang] = code.strip()
-
-    extracted_files = []
-
-    for lang, code in final_code_blocks.items():
         ext = extensions.get(lang, '.txt')
+        code = code.strip()
+        if not code:
+            continue
 
-        if lang == 'python' and code.strip():
+        if lang == 'python':
+            python_block_count += 1
             # For Python, extract each function into separate files
             extracted_files.extend(extract_python_functions(code, output_dir, ext))
+        elif lang == 'txt' or lang == 'plaintext':
+            # If it's plaintext but contains test results, save it
+            if 'PASS' in code or 'FAIL' in code or 'Test' in code:
+                filename = f"test_results_log_{other_block_count}.txt"
+                other_block_count += 1
+                code_file = output_dir / filename
+                with open(code_file, 'w', encoding='utf-8') as f:
+                    f.write(code)
+                extracted_files.append(str(code_file))
         else:
             # For other languages, save as single file
+            other_block_count += 1
             if lang and lang != 'txt':
-                filename = f"final_code_{lang}{ext}"
+                filename = f"block_{other_block_count}_{lang}{ext}"
             else:
-                filename = f"final_code.txt"
+                filename = f"block_{other_block_count}.txt"
 
             code_file = output_dir / filename
             with open(code_file, 'w', encoding='utf-8') as f:
                 f.write(code)
             extracted_files.append(str(code_file))
 
-    return extracted_files
+    return list(set(extracted_files)) # Remove duplicates if any
 
 def extract_python_functions(code, output_dir, ext):
     """Extract each Python function from code and save to separate files"""
@@ -286,43 +304,49 @@ def extract_python_functions(code, output_dir, ext):
 
     extracted_files = []
 
-    # Split code by function definitions using regex
-    # This pattern matches function definitions and captures everything up to the next function or end
-    function_pattern = r'(def\s+\w+\s*\([^)]*\)\s*:.*?)(?=\n\s*def\s|\n\s*class\s|\Z)'
-    functions = re.findall(function_pattern, code, re.DOTALL)
+    # 1. Extract functions and classes
+    # This pattern matches function/class definitions and captures everything up to the next one or end
+    pattern = r'((?:def|class)\s+\w+\s*[\s\S]*?)(?=\n(?:def|class)\s|\Z)'
+    matches = re.findall(pattern, code, re.MULTILINE)
 
-    # If regex doesn't work well, fall back to simple line-based splitting
-    if not functions:
-        # Simple fallback: split by 'def ' and 'class ' lines
-        parts = re.split(r'(?=^def\s|^class\s)', code.strip(), flags=re.MULTILINE)
-        functions = [part for part in parts if part.strip() and (part.strip().startswith('def ') or part.strip().startswith('class '))]
-
-    # Process each function/class
-    for func_code in functions:
-        func_code = func_code.strip()
-        if not func_code:
+    for match in matches:
+        match = match.strip()
+        if not match:
             continue
 
-        # Extract function/class name
-        first_line = func_code.split('\n')[0].strip()
-        if first_line.startswith('def '):
-            name_match = re.match(r'def\s+(\w+)', first_line)
-        elif first_line.startswith('class '):
-            name_match = re.match(r'class\s+(\w+)', first_line)
-        else:
-            continue
-
+        # Extract name
+        first_line = match.split('\n')[0].strip()
+        name_match = re.match(r'(?:def|class)\s+(\w+)', first_line)
+        
         if name_match:
-            func_name = name_match.group(1)
-
-            # Save to file
-            filename = f"{func_name}{ext}"
+            name = name_match.group(1)
+            # Ensure test functions are named test_...py
+            if name.lower().startswith('test') and not name.startswith('test_'):
+                filename = f"test_{name}{ext}"
+            else:
+                filename = f"{name}{ext}"
+            
             code_file = output_dir / filename
             with open(code_file, 'w', encoding='utf-8') as f:
-                f.write(func_code)
+                f.write(match)
             extracted_files.append(str(code_file))
 
-    # If no functions found, save entire code as fallback
+    # 2. Extract top-level code that looks like tests (contains assert or print)
+    # but only if it's not already part of a function
+    top_level_lines = []
+    for line in code.split('\n'):
+        if not line.startswith((' ', '\t', 'def ', 'class ')):
+            top_level_lines.append(line)
+    
+    top_level_code = '\n'.join(top_level_lines).strip()
+    if top_level_code and ('assert' in top_level_code or 'print' in top_level_code):
+        filename = f"test_top_level{ext}"
+        code_file = output_dir / filename
+        with open(code_file, 'w', encoding='utf-8') as f:
+            f.write(top_level_code)
+        extracted_files.append(str(code_file))
+
+    # Fallback: if nothing extracted, save whole block
     if not extracted_files:
         filename = f"final_code_python{ext}"
         code_file = output_dir / filename
@@ -439,8 +463,8 @@ def run_extracted_tests(output_dir):
     test_files = []
     for file_path in output_dir.glob("*.py"):
         filename = file_path.name
-        # Look for files that start with "test_"
-        if filename.startswith("test_"):
+        # Look for files that start with "test_" or were marked as test_top_level
+        if filename.startswith("test_") or "test" in filename.lower():
             test_files.append(file_path)
 
     if not test_files:
@@ -486,6 +510,99 @@ def run_extracted_tests(output_dir):
         json.dump(all_results, f, indent=2, default=str)
 
     return all_results
+
+def run_iterative_fix_loop(output_dir, llm, max_retries=3):
+    """Iteratively fix code or tests until all tests pass"""
+    import json
+    import re
+    
+    for attempt in range(max_retries):
+        print(f"\n🔄 Iterative Fix Loop: Attempt {attempt + 1}/{max_retries}")
+        
+        # 1. Run tests
+        results = run_extracted_tests(output_dir)
+        if "error" in results:
+            print(f"❌ {results['error']}")
+            break
+            
+        # 2. Check for failures
+        failures = {name: res for name, res in results.items() if name != "_summary" and not res.get("success", False)}
+        
+        if not failures:
+            print("✅ All tests passed!")
+            return True
+            
+        print(f"❌ Found {len(failures)} failing test(s).")
+        
+        # 3. Fix the first failure (one at a time as requested)
+        test_name, failure_info = next(iter(failures.items()))
+        print(f"🔍 Analyzing failure: {test_name}")
+        
+        # Read code and test
+        code_path = output_dir / "find_max_even.py"
+        test_path = output_dir / f"{test_name}.py"
+        
+        code_content = ""
+        if code_path.exists():
+            with open(code_path, "r") as f:
+                code_content = f.read()
+                
+        test_content = ""
+        if test_path.exists():
+            with open(test_path, "r") as f:
+                test_content = f.read()
+        
+        # 4. Ask LLM for fix (using the Test Analyzer's persona)
+        prompt = f"""
+You are a Quality Assurance Lead. A test has failed.
+Analyze the failure and decide whether to fix the CODE or the TEST.
+
+CODE (find_max_even.py):
+```python
+{code_content}
+```
+
+TEST ({test_name}.py):
+```python
+{test_content}
+```
+
+FAILURE LOG:
+STDOUT: {failure_info.get('stdout', '')}
+STDERR: {failure_info.get('stderr', '')}
+
+INSTRUCTIONS:
+1. Decide if the bug is in the code or the test.
+2. Provide the FIXED version of the file.
+3. Output your response in this format:
+FIX_TARGET: [code|test]
+FIXED_CONTENT:
+```python
+[Your fixed code here]
+```
+"""
+        response = llm.call([{"role": "user", "content": prompt}])
+        
+        # 5. Apply fix
+        try:
+            target_match = re.search(r"FIX_TARGET:\s*(code|test)", response, re.IGNORECASE)
+            content_match = re.search(r"FIXED_CONTENT:\s*```python\n(.*?)\n```", response, re.DOTALL)
+            
+            if target_match and content_match:
+                target = target_match.group(1).lower()
+                fixed_code = content_match.group(1)
+                
+                target_path = code_path if target == "code" else test_path
+                with open(target_path, "w") as f:
+                    f.write(fixed_code)
+                print(f"🔧 Applied fix to {target}: {target_path.name}")
+            else:
+                print("⚠️ Could not parse LLM fix recommendation.")
+                print(f"Response was: {response[:200]}...")
+        except Exception as e:
+            print(f"❌ Error applying fix: {e}")
+            
+    return False
 
 def run_crew_with_output_capture(crew_folder, output_folder):
     """Run the crew and capture all output to files"""
@@ -537,11 +654,17 @@ def run_crew_with_output_capture(crew_folder, output_folder):
             execution_info["extracted_code_files"] = extracted_files
 
             # Execute extracted test functions and capture results
+            print(f"🧪 Checking for extracted tests in {base_path}...")
             test_results = run_extracted_tests(base_path)
             if test_results and test_results != {"error": "No test files found"}:
+                print(f"✅ Found and ran {len(test_results) - 1} tests.")
                 execution_info["test_execution_results"] = test_results
-
-                # Test results are now available for the test analyzer agent to review
+                
+                # Start the iterative fix loop
+                success_all_tests = run_iterative_fix_loop(base_path, llm)
+                execution_info["all_tests_passed"] = success_all_tests
+            else:
+                print("⚠️ No test files found to run.")
 
         # Update execution info
         execution_info.update({
