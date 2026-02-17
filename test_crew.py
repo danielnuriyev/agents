@@ -14,8 +14,8 @@ Usage:
 """
 
 import os
-from crewai import Agent, Task, Crew
-from langchain_aws import BedrockLLM
+from crewai import Agent, Task, Crew, LLM
+from langchain_aws import ChatBedrock
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -23,13 +23,12 @@ load_dotenv()
 
 def create_bedrock_llm():
     """Create AWS Bedrock LLM instance for Nova Micro"""
-    return BedrockLLM(
-        model_id="amazon.nova-micro-v1:0",
-        region_name=os.getenv("AWS_DEFAULT_REGION", "us-east-1"),
-        model_kwargs={
-            "temperature": 0.7,
-            "max_tokens": 4096,
-        }
+    # Using the new CrewAI LLM class which is recommended in 1.x
+    return LLM(
+        model="bedrock/amazon.nova-micro-v1:0",
+        temperature=0.7,
+        max_tokens=4096,
+        region_name=os.getenv("AWS_DEFAULT_REGION", "us-east-1")
     )
 
 def create_agents(llm):

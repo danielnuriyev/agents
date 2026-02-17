@@ -1,6 +1,6 @@
 # CrewAI Agents with AWS Bedrock
 
-This directory contains CrewAI agent orchestration framework configured to use AWS Bedrock with Amazon Nova Micro model.
+This directory contains a CrewAI agent orchestration framework configured to use AWS Bedrock with the Amazon Nova Micro model.
 
 ## What is CrewAI?
 
@@ -18,39 +18,28 @@ CrewAI is a framework for orchestrating AI agents to work together on complex ta
 
 ### Prerequisites
 
-- **Python 3.9+**
+- **Python 3.10 - 3.13** (Note: Python 3.14 is currently NOT supported by CrewAI)
 - **AWS Credentials**: Configured via `~/.aws/credentials` or environment variables
 - **Bedrock Access**: IAM permissions for `bedrock:InvokeModel`
 
 ### Install Dependencies
 
-First, install uv (fast Python package manager):
+It is recommended to use a virtual environment:
 
 ```bash
-# Install uv
-curl -LsSf https://astral.sh/uv/install.sh | sh
+# Create virtual environment with a supported Python version (3.13 recommended)
+python3.13 -m venv .venv
+source .venv/bin/activate
 
-# Add uv to PATH (or restart terminal)
-export PATH="$HOME/.cargo/bin:$PATH"
+# Install dependencies
+pip install crewai langchain-aws boto3 python-dotenv
 ```
-
-Then install dependencies:
-
-```bash
-# Create virtual environment and install dependencies
-uv sync
-
-# Optional: Install full CrewAI (requires Rust compiler)
-# uv add crewai
-```
-
 
 ## AWS Bedrock Configuration
 
 ### 1. AWS Credentials
 
 Your AWS credentials should be configured. The system will automatically use:
-
 - `~/.aws/credentials` file
 - Environment variables: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
 - AWS profile (if specified)
@@ -89,53 +78,46 @@ Ensure your AWS user/role has these Bedrock permissions:
 ### Run AWS Bedrock Examples
 
 #### Simple Bedrock Demo (Working! ✅)
-Test AWS Bedrock Nova Micro directly:
+Test AWS Bedrock Nova Micro directly using `boto3`:
 
 ```bash
-# Using uv
-uv run python simple_bedrock_example.py
-
-# Or activate venv and run
-source venv/bin/activate
-python simple_bedrock_example.py
+source .venv/bin/activate
+python test_bedrock.py
 ```
 
 This demonstrates:
 - **AWS Bedrock connectivity** with Nova Micro
-- **Code generation** - Creates Python functions
-- **Code review** - Analyzes generated code quality
+- **Direct API usage** - Efficiently invokes the model
+- **Code generation & review** - Creates and analyzes Python code
 
-#### Full CrewAI Example (Requires additional setup)
-Execute the multi-agent example:
+#### Full CrewAI Example (Working! ✅)
+Execute the multi-agent orchestration example:
 
 ```bash
-# Using uv
-uv run python crew_example.py
-
-# Or activate venv and run
-source venv/bin/activate
-python crew_example.py
+source .venv/bin/activate
+python test_crew.py
 ```
-
-Note: Full CrewAI requires additional dependencies and Rust compiler for tiktoken.
 
 This demonstrates:
 - **Coding Assistant**: Writes clean, efficient code
 - **Code Reviewer**: Reviews for quality and best practices
 - **Testing Agent**: Creates comprehensive tests
+- **Collaborative Workflow**: Agents working together to complete a complex task
 
 ### Custom Agent Creation
 
-Create your own agents:
+Create your own agents using the CrewAI `LLM` class:
 
 ```python
-from crewai import Agent, Task, Crew
-from langchain_aws import BedrockLLM
+from crewai import Agent, Task, Crew, LLM
+import os
 
-# Initialize Bedrock LLM
-llm = BedrockLLM(
-    model_id="amazon.nova-micro-v1:0",
-    region_name="us-east-1"
+# Initialize Bedrock LLM using CrewAI's LLM class
+llm = LLM(
+    model="bedrock/amazon.nova-micro-v1:0",
+    temperature=0.7,
+    max_tokens=4096,
+    region_name=os.getenv("AWS_DEFAULT_REGION", "us-east-1")
 )
 
 # Create custom agent
@@ -150,7 +132,8 @@ agent = Agent(
 # Create task
 task = Task(
     description="Analyze sales data from Q1",
-    agent=agent
+    agent=agent,
+    expected_output="A summary report of Q1 sales trends"
 )
 
 # Run crew
@@ -163,67 +146,32 @@ result = crew.kickoff()
 ### Custom Model Parameters
 
 ```python
-llm = BedrockLLM(
-    model_id="amazon.nova-micro-v1:0",
-    region_name="us-east-1",
-    model_kwargs={
-        "temperature": 0.7,      # Creativity (0.0-1.0)
-        "max_tokens": 4096,      # Response length
-        "top_p": 0.9,           # Nucleus sampling
-        "top_k": 250,           # Top-k sampling
-    }
+llm = LLM(
+    model="bedrock/amazon.nova-micro-v1:0",
+    temperature=0.5,      # More focused (0.0-1.0)
+    max_tokens=2048,     # Response length limit
+    # Additional Bedrock parameters can be passed if needed
 )
 ```
-
-### Multi-Agent Workflows
-
-```python
-# Create multiple agents
-researcher = Agent(role="Researcher", goal="Gather information", llm=llm)
-writer = Agent(role="Writer", goal="Create content", llm=llm)
-editor = Agent(role="Editor", goal="Review and improve", llm=llm)
-
-# Chain tasks
-research_task = Task(description="Research topic", agent=researcher)
-write_task = Task(description="Write article", agent=writer, context=[research_task])
-edit_task = Task(description="Edit article", agent=editor, context=[write_task])
-
-# Run crew
-crew = Crew(agents=[researcher, writer, editor], tasks=[research_task, write_task, edit_task])
-result = crew.kickoff()
-```
-
-## Performance & Cost Optimization
 
 ### Model Selection Guide
 
 | Use Case | Recommended Model | Why |
 |----------|------------------|-----|
-| **Cost-Effective** | Nova Micro | Lowest cost, good for simple tasks |
-| **Balanced** | Nova Lite | Good performance/cost ratio |
-| **High Quality** | Nova Pro | Best quality, higher cost |
-| **Complex Reasoning** | Claude 3.5 Sonnet | Excellent reasoning capabilities |
-
-### Cost Monitoring
-
-```bash
-# Check Bedrock usage/costs
-aws bedrock get-model-invocation-logging-config --region us-east-1
-aws bedrock put-model-invocation-logging-config \
-  --logging-config '{"cloudWatchConfig":{"logGroupName":"bedrock-logs"}}' \
-  --region us-east-1
-```
+| **Cost-Effective** | `bedrock/amazon.nova-micro-v1:0` | Lowest cost, extremely fast |
+| **Balanced** | `bedrock/amazon.nova-lite-v1:0` | Good performance/cost ratio |
+| **High Quality** | `bedrock/amazon.nova-pro-v1:0` | Best quality for complex tasks |
+| **Industry Leading** | `bedrock/anthropic.claude-3-5-sonnet-20241022-v2:0` | Top-tier reasoning and coding |
 
 ## Current Setup
 
-- **Version**: CrewAI with AWS Bedrock integration
-- **Model**: Amazon Nova Micro v1.0 (cost-optimized)
-- **Region**: us-east-1 (configurable)
+- **Framework**: CrewAI 1.9.3+
+- **Primary Model**: Amazon Nova Micro (via AWS Bedrock)
+- **Environment**: Python 3.13 (Python 3.14 unsupported)
 - **License**: MIT License
 
 ## Links
 
 - **CrewAI Documentation**: https://docs.crewai.com
-- **AWS Bedrock**: https://aws.amazon.com/bedrock/
-- **Amazon Nova**: https://aws.amazon.com/ai/generative-ai/nova/
-- **CrewAI GitHub**: https://github.com/crew-ai/crewai
+- **AWS Bedrock Documentation**: https://docs.aws.amazon.com/bedrock/
+- **Amazon Nova Guide**: https://docs.aws.amazon.com/nova/latest/userguide/
